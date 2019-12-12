@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+
 import os
 import random
 
@@ -7,13 +8,13 @@ import btrfsutil
 
 
 def mocker_check(uuid):
-    with btrfsutil.SubvolumeIterator('/', 256) as it:
+    with btrfsutil.SubvolumeIterator(btrfs_path, 256) as it:
         # This is just an example use-case for fileno(). It is not necessary.
         btrfsutil.sync(it.fileno())
         for path, id_ in it:
             print(id_, path)
 
-    it = btrfsutil.SubvolumeIterator('/subvol', info=True, post_order=True)
+    it = btrfsutil.SubvolumeIterator(btrfs_path + '/subvol', info=True, post_order=True)
     try:
         for path, info in it:
             print(info.id, info.parent_id, path)
@@ -125,5 +126,6 @@ def mocker_help():
     help - выводит help по командам
     '''
     pass
+
 
 mocker_check(100)
