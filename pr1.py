@@ -84,7 +84,7 @@ def mocker_pull(image):
     Возвращает в stdout id созданного образа.
     '''
     a = dockerhub.DockerHub()
-    a.get_repository(image)
+    a.get_repository(image + ':' + 'latest')
     '''
     registry_base = 'https://hub.docker.com/v2/'#https://registry-1.docker.io/v2'
     library = 'library'
