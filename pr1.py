@@ -239,7 +239,7 @@ def mocker_run(uuid1, *args):
 	cmd="${@:2}" && ip="$(echo "${uuid: -3}" | sed 's/0//g')" && mac="${uuid: -3:1}:${uuid: -2}"
     '''
     #uuid = 'ps_' + str(random.randint(42002, 42254))
-    id = uuid.uuid1()
+    id = uuid.uuid4()
     print(id)
     uuid_name = 'ps_' + str(id.fields[5])[:4]
     print(str(id.fields[5])[:4], uuid_name)
