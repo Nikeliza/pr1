@@ -365,6 +365,7 @@ def mocker_run(uuid1, *args):
     # log.info('Finalizing')
     NetNS(netns_name).close()
     netns.remove(netns_name)
+    print(ipdb.interfaces)
     ipdb.interfaces[veth0_name].remove()
     # log.info('done')
 
