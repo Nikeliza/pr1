@@ -29,7 +29,7 @@ def mocker_check(uuid):
         print('bbbbbbbbbbbbbbbbb')
         return 1
     except Exception as e:
-        print(e, file=sys.stderr)
+        print(e)
     finally:
         it.close()
         print('aaaaaaaaaaaaaaaaaaaaa')
