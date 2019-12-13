@@ -28,6 +28,8 @@ def mocker_check(uuid):
                 return 0
         print('bbbbbbbbbbbbbbbbb')
         return 1
+    except btrfsutil.BtrfsUtilError as e:
+        print(e, file=sys.stderr)
     finally:
         it.close()
         print('aaaaaaaaaaaaaaaaaaaaa')
