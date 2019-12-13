@@ -421,6 +421,6 @@ def mocker_help():
 +
 '''
 
-# mocker_pull('hello-world')
+mocker_pull('ubuntu')
 print(mocker_images())
-mocker_run('img_42022')
+#mocker_run('img_42022')
