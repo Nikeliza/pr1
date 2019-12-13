@@ -82,7 +82,7 @@ def mocker_pull(image):
     тег указанного образа с Docker Hub.
     Возвращает в stdout id созданного образа.
     '''
-    registry_base = 'https://registry-1.docker.io/v2'
+    registry_base = 'https://hub.docker.com/v2/#'https://registry-1.docker.io/v2'
     library = 'library'
     # login anonymously
     headers = {'Authorization': 'Bearer %s' % auth(library,
