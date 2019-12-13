@@ -193,9 +193,9 @@ def mocker_images():
 return images
 '''
     for image_file in os.listdir(btrfs_path):
-        #if image_file[0:3] == 'img_':
-        print(image_file)
-    pass
+        if image_file[0:4] == 'img_':
+            print(image_file)
+    
 
 def sizeof_fmt(num, suffix='B'):
     ''' Credit : http://stackoverflow.com/questions/1094841/reusable-library-to-get-human-readable-version-of-file-size '''
