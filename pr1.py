@@ -246,8 +246,9 @@ def mocker_run(uuid1, *args):
         print('No image named ' + str(uuid1))
         return
     if mocker_check(uuid_name) == 0:
+        print(uuid_name)
         print('UUID conflict, retrying...')
-        mocker_run(uuid1, args)
+        #mocker_run(uuid1, args)
         return
     cmd = args[2:]
     #ip = uuid[-3:].replace('0', '')
