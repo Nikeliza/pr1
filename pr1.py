@@ -13,6 +13,7 @@ import requests
 import platform
 import json
 import tarfile
+import dockerhub
 
 
 def mocker_check(uuid):
@@ -82,6 +83,8 @@ def mocker_pull(image):
     тег указанного образа с Docker Hub.
     Возвращает в stdout id созданного образа.
     '''
+    dockerhub.get_repository(image)
+    '''
     registry_base = 'https://hub.docker.com/v2/'#https://registry-1.docker.io/v2'
     library = 'library'
     # login anonymously
@@ -130,7 +133,7 @@ def mocker_pull(image):
 
             tar.extractall(str(contents_path))
     pass
-
+    '''
 
 def mocker_rmi(uuid):
     '''+
