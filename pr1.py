@@ -324,7 +324,7 @@ def mocker_run(uuid1, *args):
     os.system('echo \'nameserver 8.8.8.8\' > ' + btrfs_path + '/' + uuid_name + '/etc/resolv.conf')
     #os.system('echo ' + cmd + ' > "' + btrfs_path + '/' + uuid_name + '/' + uuid_name + '.cmd"')
 
-    cg = Cgroup(uuid)
+    cg = Cgroup(uuid_name)
     cg.set_cpu_limit(50)  # TODO : get these as command line options
     cg.set_memory_limit(500)
 
