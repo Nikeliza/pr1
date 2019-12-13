@@ -33,7 +33,7 @@ def mocker_check(uuid):
     finally:
         it.close()
         print('aaaaaaaaaaaaaaaaaaaaa')
-        return 1
+        #return 1
 
 
 def mocker_init(directory):
