@@ -240,7 +240,9 @@ def mocker_run(uuid1, *args):
     '''
     #uuid = 'ps_' + str(random.randint(42002, 42254))
     id = uuid.uuid1()
+    print(id)
     uuid_name = 'ps_' + str(id.fields[5])[:4]
+    print(str(id.fields[5])[:4], uuid_name)
     mac = str(id.fields[5])[:2]
     if mocker_check(uuid1) == 1:
         print('No image named ' + str(uuid1))
