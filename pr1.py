@@ -82,7 +82,6 @@ def mocker_pull(image):
     pull <image> - скачать последний (latest)
     тег указанного образа с Docker Hub.
     Возвращает в stdout id созданного образа.
-
     a = dockerhub.DockerHub()
     a.get_repository(image)
     '''
@@ -179,7 +178,7 @@ def mocker_images():
 		img=$(basename "$img")
 		echo -e "$img\t\t$(cat "$btrfs_path/$img/img.source")"
 	done
-    '''
+    
     images = [['name', 'version', 'size', 'file']]
 
     for image_file in os.listdir(btrfs_path):
@@ -191,9 +190,11 @@ def mocker_images():
                        os.listdir(image_base)
                        if os.path.isfile(os.path.join(image_base, f)))
             images.append([image['name'], image['tag'], sizeof_fmt(size), image_file])
-
-
-    return images
+return images
+'''
+    for image_file in os.listdir(btrfs_path):
+        if image_file[0:3] == 'img_':
+            print(image_file)
     pass
 
 def sizeof_fmt(num, suffix='B'):
