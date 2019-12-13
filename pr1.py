@@ -22,7 +22,7 @@ def mocker_check(uuid):
     try:
         for path, info in it:
             print(info.id, info.parent_id, path)
-            if path == uuid:
+            if str(path) == uuid:
                 return 0
         return 1
     finally:
