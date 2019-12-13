@@ -83,7 +83,131 @@ def get_manifest(image, tag, registry_base, library, headers):
     print(manifest)
     return manifest.json()
 
+    cg.set_cpu_limit(50)  # TODO : get these as command line options
 
+329
+
+    cg.set_memory_limit(500)
+
+330
+
+​
+
+331
+
+    def in_cgroup():
+
+332
+
+        try:
+
+333
+
+            pid = os.getpid()
+
+334
+
+            cg = Cgroup(uuid_name)
+
+335
+
+            '''for env in env_vars:
+
+336
+
+                log.info('Setting ENV %s' % env)
+
+337
+
+                os.putenv(*env.split('=', 1))
+
+338
+
+    '''
+
+339
+
+            # Set network namespace
+
+340
+
+            netns.setns(netns_name)
+
+341
+
+​
+
+342
+
+            # add process to cgroup
+
+343
+
+            cg.add(pid)
+
+344
+
+            '''
+
+345
+
+            os.chroot(layer_dir)
+
+346
+
+            if working_dir != '':
+
+347
+
+                log.info("Setting working directory to %s" % working_dir)
+
+348
+
+                os.chdir(working_dir)
+
+349
+
+                '''
+
+350
+
+        except Exception as e:
+
+351
+
+            traceback.print_exc()
+
+352
+
+            # log.error("Failed to preexecute function")
+
+353
+
+            # log.error(e)
+
+354
+
+        cmd = args
+
+355
+
+        # log.info('Running "%s"' % cmd)
+
+356
+
+        process = subprocess.Popen(cmd, preexec_fn=in_cgroup, shell=True)
+
+357
+
+        process.wait()
+
+358
+
+        print(process.stdout)
+
+359
+
+        # log.error(process.stderr)
 def mocker_pull(image):
     '''
     pull <image> - скачать последний (latest)
@@ -206,7 +330,131 @@ return images
 def sizeof_fmt(num, suffix='B'):
     ''' Credit : http://stackoverflow.com/questions/1094841/reusable-library-to-get-human-readable-version-of-file-size '''
     for unit in ['', 'Ki', 'Mi', 'Gi', 'Ti', 'Pi', 'Ei', 'Zi']:
-        if abs(num) < 1024.0:
+        if abs(num) < 1024.0:    cg.set_cpu_limit(50)  # TODO : get these as command line options
+
+329
+
+    cg.set_memory_limit(500)
+
+330
+
+​
+
+331
+
+    def in_cgroup():
+
+332
+
+        try:
+
+333
+
+            pid = os.getpid()
+
+334
+
+            cg = Cgroup(uuid_name)
+
+335
+
+            '''for env in env_vars:
+
+336
+
+                log.info('Setting ENV %s' % env)
+
+337
+
+                os.putenv(*env.split('=', 1))
+
+338
+
+    '''
+
+339
+
+            # Set network namespace
+
+340
+
+            netns.setns(netns_name)
+
+341
+
+​
+
+342
+
+            # add process to cgroup
+
+343
+
+            cg.add(pid)
+
+344
+
+            '''
+
+345
+
+            os.chroot(layer_dir)
+
+346
+
+            if working_dir != '':
+
+347
+
+                log.info("Setting working directory to %s" % working_dir)
+
+348
+
+                os.chdir(working_dir)
+
+349
+
+                '''
+
+350
+
+        except Exception as e:
+
+351
+
+            traceback.print_exc()
+
+352
+
+            # log.error("Failed to preexecute function")
+
+353
+
+            # log.error(e)
+
+354
+
+        cmd = args
+
+355
+
+        # log.info('Running "%s"' % cmd)
+
+356
+
+        process = subprocess.Popen(cmd, preexec_fn=in_cgroup, shell=True)
+
+357
+
+        process.wait()
+
+358
+
+        print(process.stdout)
+
+359
+
+        # log.error(process.stderr)
             return "%3.1f%s%s" % (num, unit, suffix)
         num /= 1024.0
     return "%.1f%s%s" % (num, 'Yi', suffix)
@@ -365,8 +613,8 @@ def mocker_run(uuid1, *args):
     # log.info('Finalizing')
     NetNS(netns_name).close()
     netns.remove(netns_name)
-    print(ipdb.interfaces)
-    ipdb.interfaces[veth0_name].remove()
+    #print(ipdb.interfaces)
+    #ipdb.interfaces[veth0_name].remove()
     # log.info('done')
 
 
