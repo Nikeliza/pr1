@@ -15,15 +15,16 @@ import platform
 import json
 import tarfile
 import dockerhub
+import uuid
 
 
-def mocker_check(uuid):
+def mocker_check(uuid1):
     it = btrfsutil.SubvolumeIterator(btrfs_path, info=True, post_order=True)
     try:
-        #print(len(it))
+        # print(len(it))
         for path, info in it:
             print(info.id, info.parent_id, path)
-            if str(path) == uuid:
+            if str(path) == uuid1:
                 print('ccccccccccccccccccc')
                 return 0
         print('bbbbbbbbbbbbbbbbb')
@@ -33,7 +34,7 @@ def mocker_check(uuid):
     finally:
         it.close()
         print('aaaaaaaaaaaaaaaaaaaaa')
-        #return 1
+        # return 1
 
 
 def mocker_init(directory):
@@ -44,21 +45,21 @@ def mocker_init(directory):
     '''
     # uuid="img_$(shuf -i 42002-42254 -n 1)"
     # img ???????????????????????????????++++++++++++++++++++++++++
-    uuid = 'img_' + str(random.randint(42002, 42254))
+    uuid1 = 'img_' + str(random.randint(42002, 42254))
     if os.path.exists(directory):
-        if mocker_check(uuid) == 0:
+        if mocker_check(uuid1) == 0:
             mocker_run(directory)  # ???????????????? vse argumenti v stolbik
 
-        btrfsutil.create_subvolume(btrfs_path + '/' + str(uuid))
+        btrfsutil.create_subvolume(btrfs_path + '/' + str(uuid1))
 
         # btrfs subvolume create "$btrfs_path/$uuid" > /dev/null
         os.system('cp -rf --reflink=auto ' + directory + '/* ' + btrfs_path + '/' + str(uuid))
         # cp -rf --reflink=auto "$1"/* "$btrfs_path/$uuid" > /dev/null
 
         # [[ ! -f "$btrfs_path/$uuid"/img.source ]] && echo "$1" > "$btrfs_path/$uuid"/img.source
-        if not os.path.exists(btrfs_path + '/' + str(uuid) + '/img.source'):
+        if not os.path.exists(btrfs_path + '/' + str(uuid1) + '/img.source'):
             os.system('echo ' + directory + ' > ' + btrfs_path + '/' + str(uuid) + '/img.source')
-        print("created " + str(uuid))
+        print("created " + str(uuid1))
     else:
         print("Noo directory named " + directory + " exists")
     pass
@@ -142,7 +143,7 @@ def mocker_pull(image):
     pass
 
 
-def mocker_rmi(uuid):
+def mocker_rmi(uuid1):
     '''+
     rmi <image_id> - удаляет
     ранее созданный образ из локального хранилища.
@@ -154,13 +155,13 @@ def mocker_rmi(uuid):
 	echo "Removed: $1"
     '''
 
-    if mocker_check(uuid) == 1:
-        print('No container named ' + str(uuid))
+    if mocker_check(uuid1) == 1:
+        print('No container named ' + str(uuid1))
         return
-    btrfsutil.delete_subvolume(btrfs_path + '/' + str(uuid))
-    cg = Cgroup(uuid)
-    cg.remove(uuid)
-    print('Removed ' + str(uuid))
+    btrfsutil.delete_subvolume(btrfs_path + '/' + str(uuid1))
+    cg = Cgroup(uuid1)
+    cg.remove(uuid1)
+    print('Removed ' + str(uuid1))
     # Cgroup.remove(uuid)
 
     pass
@@ -184,9 +185,8 @@ def mocker_images():
 		img=$(basename "$img")
 		echo -e "$img\t\t$(cat "$btrfs_path/$img/img.source")"
 	done
-    
-    images = [['name', 'version', 'size', 'file']]
 
+    images = [['name', 'version', 'size', 'file']]
     for image_file in os.listdir(btrfs_path):
         if image_file.endswith('.json'):
             with open(os.path.join(btrfs_path, image_file), 'r') as json_f:
@@ -201,15 +201,16 @@ return images
     for image_file in os.listdir(btrfs_path):
         if image_file[0:4] == 'img_':
             print(image_file)
-    
+
 
 def sizeof_fmt(num, suffix='B'):
     ''' Credit : http://stackoverflow.com/questions/1094841/reusable-library-to-get-human-readable-version-of-file-size '''
-    for unit in ['','Ki','Mi','Gi','Ti','Pi','Ei','Zi']:
+    for unit in ['', 'Ki', 'Mi', 'Gi', 'Ti', 'Pi', 'Ei', 'Zi']:
         if abs(num) < 1024.0:
             return "%3.1f%s%s" % (num, unit, suffix)
         num /= 1024.0
     return "%.1f%s%s" % (num, 'Yi', suffix)
+
 
 def mocker_ps():
     '''+
@@ -237,18 +238,21 @@ def mocker_run(uuid1, *args):
 	[[ "$(bocker_check "$uuid")" == 0 ]] && echo "UUID conflict, retrying..." && bocker_run "$@" && return
 	cmd="${@:2}" && ip="$(echo "${uuid: -3}" | sed 's/0//g')" && mac="${uuid: -3:1}:${uuid: -2}"
     '''
-    uuid = 'ps_' + str(random.randint(42002, 42254))
+    #uuid = 'ps_' + str(random.randint(42002, 42254))
+    id = uuid.uuid1()
+    uuid_name = 'ps_' + str(id.fields[5])[:4]
+    mac = str(id.fields[5])[:2]
     if mocker_check(uuid1) == 1:
         print('No image named ' + str(uuid1))
         return
-    if mocker_check(uuid) == 0:
+    if mocker_check(uuid_name) == 0:
         print('UUID conflict, retrying...')
         mocker_run(uuid1, args)
         return
     cmd = args[2:]
-    ip = uuid[-3:].replace('0', '')
-    mac = uuid[-3] + ':' + uuid[-2:]
-    print(cmd, ip, mac)
+    #ip = uuid[-3:].replace('0', '')
+    #mac = uuid[-3] + ':' + uuid[-2:]
+    #print(cmd, ip, mac)
     '''
     ip link add dev veth0_"$uuid" type veth peer name veth1_"$uuid"
 	ip link set dev veth0_"$uuid" up
@@ -264,9 +268,9 @@ def mocker_run(uuid1, *args):
     ip_last_octet = 103
 
     with IPDB() as ipdb:
-        veth0_name = 'veth0_' + str(uuid)
-        veth1_name = 'veth1_' + str(uuid)
-        netns_name = 'netns_' + str(uuid)
+        veth0_name = 'veth0_' + str(uuid_name)
+        veth1_name = 'veth1_' + str(uuid_name)
+        netns_name = 'netns_' + str(uuid_name)
         bridge_if_name = 'bridge0'
 
         existing_interfaces = ipdb.interfaces.keys()
@@ -313,9 +317,9 @@ def mocker_run(uuid1, *args):
 	ip link del dev veth0_"$uuid"
 	ip netns del netns_"$uuid"
     '''
-    btrfsutil.create_snapshot(btrfs_path + '/' + uuid1, btrfs_path + '/' + uuid)
-    os.system('echo \'nameserver 8.8.8.8\' > ' + btrfs_path + '/' + uuid + '/etc/resolv.conf')
-    os.system('echo ' + cmd + ' > "' + btrfs_path + '/' + uuid + '/' + uuid + '.cmd"')
+    btrfsutil.create_snapshot(btrfs_path + '/' + uuid1, btrfs_path + '/' + uuid_name)
+    os.system('echo \'nameserver 8.8.8.8\' > ' + btrfs_path + '/' + uuid_name + '/etc/resolv.conf')
+    os.system('echo ' + cmd + ' > "' + btrfs_path + '/' + uuid_name + '/' + uuid_name + '.cmd"')
 
     cg = Cgroup(uuid)
     cg.set_cpu_limit(50)  # TODO : get these as command line options
@@ -324,7 +328,7 @@ def mocker_run(uuid1, *args):
     def in_cgroup():
         try:
             pid = os.getpid()
-            cg = Cgroup(uuid)
+            cg = Cgroup(uuid_name)
             '''for env in env_vars:
                 log.info('Setting ENV %s' % env)
                 os.putenv(*env.split('=', 1))
@@ -371,7 +375,7 @@ def mocker_exec():
     pass
 
 
-def mocker_logs(uuid):
+def mocker_logs(uuid1):
     '''+
     logs <container_id> - выводит логи
     указанного контейнера
@@ -381,10 +385,10 @@ def mocker_logs(uuid):
 	cat "$btrfs_path/$1/$1.log"
     '''
 
-    if mocker_check(uuid) == 1:
-        print('No container named ' + str(uuid))
+    if mocker_check(uuid1) == 1:
+        print('No container named ' + str(uuid1))
         return
-    os.system('cat ' + btrfs_path + '/' + str(uuid) + '/' + str(uuid) + '.log')
+    os.system('cat ' + btrfs_path + '/' + str(uuid1) + '/' + str(uuid1) + '.log')
     pass
 
 
@@ -423,6 +427,6 @@ def mocker_help():
 +
 '''
 
-#mocker_pull('hello-world')
+# mocker_pull('hello-world')
 print(mocker_images())
 mocker_run('img_42022')
