@@ -19,7 +19,7 @@ def mocker_check(uuid):
     it = btrfsutil.SubvolumeIterator(btrfs_path, info=True, post_order=True)
     try:
         for path, info in it:
-            #print(info.id, info.parent_id, path)
+            print(info.id, info.parent_id, path)
             if info.id == uuid:
                 return 0
         return 1
