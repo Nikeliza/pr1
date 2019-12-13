@@ -193,8 +193,8 @@ def mocker_images():
 return images
 '''
     for image_file in os.listdir(btrfs_path):
-        if image_file[0:3] == 'img_':
-            print(image_file)
+        #if image_file[0:3] == 'img_':
+        print(image_file)
     pass
 
 def sizeof_fmt(num, suffix='B'):
