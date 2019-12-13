@@ -51,7 +51,7 @@ def mocker_init(directory):
 
         # [[ ! -f "$btrfs_path/$uuid"/img.source ]] && echo "$1" > "$btrfs_path/$uuid"/img.source
         if not os.path.exists(btrfs_path + '/' + str(uuid) + '/img.source'):
-            os.system('echo' + directory + ' > ' + btrfs_path + '/' + str(uuid) + '/img.source')
+            os.system('echo ' + directory + ' > ' + btrfs_path + '/' + str(uuid) + '/img.source')
         print("created " + str(uuid))
     else:
         print("Noo directory named " + directory + " exists")
