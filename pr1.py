@@ -73,7 +73,7 @@ def get_manifest(image, tag, registry_base, library, headers):
                             (registry_base, library, image, tag),
                             headers=headers)
     print(manifest)
-    #return manifest.json()
+    return manifest.json()
 
 
 
