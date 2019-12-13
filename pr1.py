@@ -415,5 +415,5 @@ def mocker_help():
 +
 '''
 
-# mocker_pull('hello-world')
+mocker_pull('hello-world')
 print(mocker_images())
