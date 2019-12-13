@@ -392,4 +392,4 @@ def mocker_help():
 +
 '''
 
-mocker_pull('centos 7')
+mocker_pull('hello-world')
