@@ -243,7 +243,7 @@ def mocker_run(uuid1, *args):
         #mocker_run(uuid1, args)
         return
     print(args)
-    cmd = args[2:]
+    cmd = args
     #ip = uuid[-3:].replace('0', '')
     #mac = uuid[-3] + ':' + uuid[-2:]
     #print(cmd, ip, mac)
