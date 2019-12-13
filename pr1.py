@@ -26,7 +26,7 @@ def mocker_check(uuid):
             if str(path) == uuid:
                 print('ccccccccccccccccccc')
                 return 0
-	print('bbbbbbbbbbbbbbbbb')
+        print('bbbbbbbbbbbbbbbbb')
         return 1
     finally:
         it.close()
