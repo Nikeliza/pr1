@@ -248,6 +248,7 @@ def mocker_run(uuid1, *args):
     cmd = args[2:]
     ip = uuid[-3:].replace('0', '')
     mac = uuid[-3] + ':' + uuid[-2:]
+    print(cmd, ip, mac)
     '''
     ip link add dev veth0_"$uuid" type veth peer name veth1_"$uuid"
 	ip link set dev veth0_"$uuid" up
