@@ -24,10 +24,13 @@ def mocker_check(uuid):
         for path, info in it:
             print(info.id, info.parent_id, path)
             if str(path) == uuid:
+                print('ccccccccccccccccccc')
                 return 0
+	print('bbbbbbbbbbbbbbbbb')
         return 1
     finally:
         it.close()
+	print('aaaaaaaaaaaaaaaaaaaaa')
         return 1
 
 
