@@ -71,8 +71,8 @@ def get_manifest(image, tag, registry_base, library, headers):
     manifest = requests.get('%s/%s/%s/manifests/%s' %
                             (registry_base, library, image, tag),
                             headers=headers)
-
-    return manifest.json()
+    print(manifest)
+    #return manifest.json()
 
 
 
