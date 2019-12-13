@@ -319,7 +319,7 @@ def mocker_run(uuid1, *args):
     '''
     btrfsutil.create_snapshot(btrfs_path + '/' + uuid1, btrfs_path + '/' + uuid_name)
     os.system('echo \'nameserver 8.8.8.8\' > ' + btrfs_path + '/' + uuid_name + '/etc/resolv.conf')
-    os.system('echo ' + cmd + ' > "' + btrfs_path + '/' + uuid_name + '/' + uuid_name + '.cmd"')
+    #os.system('echo ' + cmd + ' > "' + btrfs_path + '/' + uuid_name + '/' + uuid_name + '.cmd"')
 
     cg = Cgroup(uuid)
     cg.set_cpu_limit(50)  # TODO : get these as command line options
