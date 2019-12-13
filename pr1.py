@@ -3,8 +3,9 @@ import os
 import random
 from cgroups import Cgroup
 from pyroute2 import IPDB, NetNS, netns
-btrfs_path='/var/mocker'
-cgroups1='cpu,cpuacct,memory'
+
+btrfs_path = '/var/mocker'
+cgroups1 = 'cpu,cpuacct,memory'
 import btrfsutil
 from cgroups.user import create_user_cgroups
 import subprocess
@@ -35,20 +36,20 @@ def mocker_init(directory):
     используя указанную директорию как корневую.
     Возвращает в stdout id созданного образа.
     '''
-    #uuid="img_$(shuf -i 42002-42254 -n 1)"
-    #img ???????????????????????????????++++++++++++++++++++++++++
+    # uuid="img_$(shuf -i 42002-42254 -n 1)"
+    # img ???????????????????????????????++++++++++++++++++++++++++
     uuid = 'img_' + str(random.randint(42002, 42254))
     if os.path.exists(directory):
         if mocker_check(uuid) == 0:
-            mocker_run(directory)#???????????????? vse argumenti v stolbik
+            mocker_run(directory)  # ???????????????? vse argumenti v stolbik
 
         btrfsutil.create_subvolume(btrfs_path + '/' + str(uuid))
 
-        #btrfs subvolume create "$btrfs_path/$uuid" > /dev/null
+        # btrfs subvolume create "$btrfs_path/$uuid" > /dev/null
         os.system('cp -rf --reflink=auto' + directory + '/* ' + btrfs_path + '/' + str(uuid))
-        #cp -rf --reflink=auto "$1"/* "$btrfs_path/$uuid" > /dev/null
+        # cp -rf --reflink=auto "$1"/* "$btrfs_path/$uuid" > /dev/null
 
-        #[[ ! -f "$btrfs_path/$uuid"/img.source ]] && echo "$1" > "$btrfs_path/$uuid"/img.source
+        # [[ ! -f "$btrfs_path/$uuid"/img.source ]] && echo "$1" > "$btrfs_path/$uuid"/img.source
         if not os.path.exists(btrfs_path + '/' + str(uuid) + '/img.source'):
             os.system('echo' + directory + ' > ' + btrfs_path + '/' + str(uuid) + '/img.source')
         print("created " + str(uuid))
@@ -76,21 +77,20 @@ def get_manifest(image, tag, registry_base, library, headers):
     return manifest.json()
 
 
-
 def mocker_pull(image):
     '''
     pull <image> - скачать последний (latest)
     тег указанного образа с Docker Hub.
     Возвращает в stdout id созданного образа.
-    
+
     a = dockerhub.DockerHub()
     a.get_repository(image)
     '''
-    registry_base = 'https://registry-1.docker.io/v2'#'https://hub.docker.com/v2/'
+    registry_base = 'https://registry-1.docker.io/v2'  # 'https://hub.docker.com/v2/'
     library = 'library'
     # login anonymously
     headers = {'Authorization': 'Bearer %s' % auth(library,
-                                                             image)}
+                                                   image)}
     # get the manifest
     manifest = get_manifest(image, 'latest', registry_base, library, headers)
 
@@ -134,7 +134,7 @@ def mocker_pull(image):
 
             tar.extractall(str(contents_path))
     pass
-    
+
 
 def mocker_rmi(uuid):
     '''+
@@ -155,7 +155,7 @@ def mocker_rmi(uuid):
     cg = Cgroup(uuid)
     cg.remove(uuid)
     print('Removed ' + str(uuid))
-    #Cgroup.remove(uuid)
+    # Cgroup.remove(uuid)
 
     pass
 
@@ -181,18 +181,27 @@ def mocker_images():
     '''
     images = [['name', 'version', 'size', 'file']]
 
-    for image_file in os.listdir(_base_dir_):
+    for image_file in os.listdir(btrfs_path):
         if image_file.endswith('.json'):
-            with open(os.path.join(_base_dir_, image_file), 'r') as json_f:
+            with open(os.path.join(btrfs_path, image_file), 'r') as json_f:
                 image = json.loads(json_f.read())
-            image_base = os.path.join(_base_dir_, image_file.replace('.json', ''), 'layers')
+            image_base = os.path.join(btrfs_path, image_file.replace('.json', ''), 'layers')
             size = sum(os.path.getsize(os.path.join(image_base, f)) for f in
-                           os.listdir(image_base)
-                           if os.path.isfile(os.path.join(image_base, f)))
-                images.append([image['name'], image['tag'], sizeof_fmt(size), image_file])
+                       os.listdir(image_base)
+                       if os.path.isfile(os.path.join(image_base, f)))
+            images.append([image['name'], image['tag'], sizeof_fmt(size), image_file])
+
+
     return images
     pass
 
+def sizeof_fmt(num, suffix='B'):
+    ''' Credit : http://stackoverflow.com/questions/1094841/reusable-library-to-get-human-readable-version-of-file-size '''
+    for unit in ['','Ki','Mi','Gi','Ti','Pi','Ei','Zi']:
+        if abs(num) < 1024.0:
+            return "%3.1f%s%s" % (num, unit, suffix)
+        num /= 1024.0
+    return "%.1f%s%s" % (num, 'Yi', suffix)
 
 def mocker_ps():
     '''+
@@ -324,24 +333,24 @@ def mocker_run(uuid1, *args):
                 '''
         except Exception as e:
             traceback.print_exc()
-            #log.error("Failed to preexecute function")
-            #log.error(e)
+            # log.error("Failed to preexecute function")
+            # log.error(e)
         cmd = args
-        #log.info('Running "%s"' % cmd)
+        # log.info('Running "%s"' % cmd)
         process = subprocess.Popen(cmd, preexec_fn=in_cgroup, shell=True)
         process.wait()
         print(process.stdout)
-        #log.error(process.stderr)
+        # log.error(process.stderr)
 
     '''except Exception as e:
         traceback.print_exc()
         log.error(e)
     finally:'''
-    #log.info('Finalizing')
+    # log.info('Finalizing')
     NetNS(netns_name).close()
     netns.remove(netns_name)
     ipdb.interfaces[veth0_name].remove()
-    #log.info('done')
+    # log.info('done')
 
 
 def mocker_exec():
@@ -399,9 +408,11 @@ def mocker_help():
     help - выводит help по командам
     '''
     pass
+
+
 '''
 +
 '''
 
-#mocker_pull('hello-world')
+# mocker_pull('hello-world')
 print(mocker_images())
