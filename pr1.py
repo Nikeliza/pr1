@@ -82,11 +82,11 @@ def mocker_pull(image):
     pull <image> - скачать последний (latest)
     тег указанного образа с Docker Hub.
     Возвращает в stdout id созданного образа.
-    '''
+    
     a = dockerhub.DockerHub()
     a.get_repository(image)
     '''
-    registry_base = 'https://hub.docker.com/v2/'#https://registry-1.docker.io/v2'
+    registry_base = 'https://registry-1.docker.io/v2'#'https://hub.docker.com/v2/'
     library = 'library'
     # login anonymously
     headers = {'Authorization': 'Bearer %s' % auth(library,
@@ -134,7 +134,7 @@ def mocker_pull(image):
 
             tar.extractall(str(contents_path))
     pass
-    '''
+    
 
 def mocker_rmi(uuid):
     '''+
