@@ -387,4 +387,4 @@ def mocker_help():
 +
 '''
 
-mocker_check(100)
+mocker_pull('centos 7')
