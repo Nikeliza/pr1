@@ -133,6 +133,7 @@ def mocker_pull(image):
             print('...')
 
             tar.extractall(str(contents_path))
+    mocker_init(dl_path)
     pass
 
 
