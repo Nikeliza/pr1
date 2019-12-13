@@ -83,11 +83,12 @@ def mocker_pull(image):
     Возвращает в stdout id созданного образа.
     '''
     registry_base = 'https://registry-1.docker.io/v2'
+    library = 'library'
     # login anonymously
-    headers = {'Authorization': 'Bearer %s' % auth('library',
+    headers = {'Authorization': 'Bearer %s' % auth(library,
                                                              image)}
     # get the manifest
-    manifest = get_manifest(image, 'latests', registry_base, 'library', headers)
+    manifest = get_manifest(image, 'latest', registry_base, library, headers)
 
     # save the manifest
     image_name_friendly = manifest['name'].replace('/', '_')
@@ -111,7 +112,7 @@ def mocker_pull(image):
     # download all the parts
     for sig in unique_layer_sigs:
         print('Fetching layer %s..' % sig)
-        url = '%s/%s/%s/blobs/%s' % (registry_base, 'library',
+        url = '%s/%s/%s/blobs/%s' % (registry_base, library,
                                      image, sig)
         local_filename = os.path.join(dl_path, sig) + '.tar'
 
