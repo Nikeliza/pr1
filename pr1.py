@@ -46,7 +46,7 @@ def mocker_init(directory):
         btrfsutil.create_subvolume(btrfs_path + '/' + str(uuid))
 
         # btrfs subvolume create "$btrfs_path/$uuid" > /dev/null
-        os.system('cp -rf --reflink=auto' + directory + '/* ' + btrfs_path + '/' + str(uuid))
+        os.system('cp -rf --reflink=auto ' + directory + '/* ' + btrfs_path + '/' + str(uuid))
         # cp -rf --reflink=auto "$1"/* "$btrfs_path/$uuid" > /dev/null
 
         # [[ ! -f "$btrfs_path/$uuid"/img.source ]] && echo "$1" > "$btrfs_path/$uuid"/img.source
