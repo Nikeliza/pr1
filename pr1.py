@@ -340,7 +340,7 @@ def mocker_run(uuid1, *args):
             #if working_dir != '':
                 #log.info("Setting working directory to %s" % working_dir)
                 #os.chdir(working_dir)
-                '''
+                
         except Exception as e:
             traceback.print_exc()
             # log.error("Failed to preexecute function")
