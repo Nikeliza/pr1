@@ -261,7 +261,7 @@ def mocker_run(uuid1, *args):
     '''
     ip_last_octet = 103
     #state = json.loads(image_details['history'][0]['v1Compatibility'])
-    layer_dir = os.path.join(btrfs_path, uuid1.replace('.json', ''), 'layers', 'contents')
+    layer_dir = os.path.join(btrfs_path, uuid1.replace('.json', ''), 'contents')
     # Extract information about this container
     #env_vars = state['config']['Env']
     with IPDB() as ipdb:
