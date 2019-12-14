@@ -377,6 +377,6 @@ def mocker_help():
 +
 '''
 
-# mocker_pull('hello-world')
-print(mocker_images())
-mocker_run('img_42022')
+mocker_pull('hello-world')
+mocker_images()
+#mocker_run('img_42022')
