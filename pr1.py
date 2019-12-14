@@ -263,7 +263,7 @@ def mocker_run(uuid1, *args):
     #state = json.loads(image_details['history'][0]['v1Compatibility'])
 
     # Extract information about this container
-    env_vars = state['config']['Env']
+    #env_vars = state['config']['Env']
     with IPDB() as ipdb:
         veth0_name = 'veth0_' + str(uuid_name)
         veth1_name = 'veth1_' + str(uuid_name)
