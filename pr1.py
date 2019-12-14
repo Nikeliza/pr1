@@ -426,6 +426,6 @@ def mocker_help():
 +
 '''
 
-#mocker_pull('ubuntu')
-#print(mocker_images())
-mocker_run('img_42022', '/hello')
+mocker_pull('busybox')
+print(mocker_images())
+#mocker_run('img_42022', '/hello')
