@@ -345,7 +345,8 @@ def mocker_run(uuid1, *args):
             traceback.print_exc()
             # log.error("Failed to preexecute function")
             # log.error(e)
-        cmd = args
+        cmd = list(args)
+        print(cmd)
         # log.info('Running "%s"' % cmd)
         process = subprocess.Popen(cmd, preexec_fn=in_cgroup, shell=True)
         process.wait()
