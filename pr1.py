@@ -424,4 +424,4 @@ def mocker_help():
 
 #mocker_pull('ubuntu')
 #print(mocker_images())
-mocker_run('img_42026', 'echo 123')
+mocker_run('img_42026', '/bash')
