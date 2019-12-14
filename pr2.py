@@ -206,7 +206,7 @@ def mocker_run(uuid1, *args, **kwargs):
     с указанной командой
     '''
     images = list_images()
-    image_name = kwargs['<name>']
+    image_name = uuid1#kwargs['<name>']
     ip_last_octet = 103  # TODO : configurable
 
     match = [i[3] for i in images if i[0] == image_name][0]
