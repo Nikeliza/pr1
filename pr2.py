@@ -78,7 +78,8 @@ def mocker_pull(image):
     # login anonymously
     headers = {'Authorization': 'Bearer %s' % auth(library, image)}
     # get the manifest
-    manifest = get_manifest()
+    tag = 'latest'
+    manifest = get_manifest(image, tag, registry_base, library, headers)
 
     # save the manifest
     image_name_friendly = manifest['name'].replace('/', '_')
