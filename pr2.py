@@ -301,6 +301,7 @@ def mocker_run(uuid1, *args, **kwargs):
                     #log.error(e)
 
             cmd = start_cmd
+            print(cmd)
             #log.info('Running "%s"' % cmd)
             process = subprocess.Popen(cmd, preexec_fn=in_cgroup, shell=True)
             process.wait()
