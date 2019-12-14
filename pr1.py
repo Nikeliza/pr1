@@ -428,4 +428,4 @@ def mocker_help():
 
 #mocker_pull('ubuntu')
 #print(mocker_images())
-mocker_run('img_42026', '/bash')
+mocker_run('img_42026', './bash')
