@@ -242,7 +242,7 @@ def mocker_run(uuid1, *args):
         print('UUID conflict, retrying...')
         #mocker_run(uuid1, args)
         return
-    print(args)
+    #print(args)
     cmd = args
     #ip = uuid[-3:].replace('0', '')
     #mac = uuid[-3] + ':' + uuid[-2:]
@@ -315,7 +315,7 @@ def mocker_run(uuid1, *args):
 	ip netns del netns_"$uuid"
     '''
     btrfsutil.create_snapshot(btrfs_path + '/' + uuid1, btrfs_path + '/' + uuid_name)
-    os.system('echo \'nameserver 8.8.8.8\' > ' + btrfs_path + '/' + uuid_name + '/etc/resolv.conf')
+    #os.system('echo \'nameserver 8.8.8.8\' > ' + btrfs_path + '/' + uuid_name + '/etc/resolv.conf')
     #os.system('echo ' + cmd + ' > "' + btrfs_path + '/' + uuid_name + '/' + uuid_name + '.cmd"')
 
     cg = Cgroup(uuid_name)
@@ -345,12 +345,12 @@ def mocker_run(uuid1, *args):
             traceback.print_exc()
             # log.error("Failed to preexecute function")
             # log.error(e)
-        cmd = list(args)
-        print(cmd)
-        # log.info('Running "%s"' % cmd)
-        process = subprocess.Popen(cmd, preexec_fn=in_cgroup, shell=True)
-        process.wait()
-        print(process.stdout)
+    cmd = list(args)
+    print(cmd)
+    # log.info('Running "%s"' % cmd)
+    process = subprocess.Popen(cmd, preexec_fn=in_cgroup, shell=True)
+    process.wait()
+    print(process.stdout)
         # log.error(process.stderr)
 
     '''except Exception as e:
