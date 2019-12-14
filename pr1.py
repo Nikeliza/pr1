@@ -261,7 +261,7 @@ def mocker_run(uuid1, *args):
     '''
     ip_last_octet = 103
     #state = json.loads(image_details['history'][0]['v1Compatibility'])
-
+    layer_dir = os.path.join(btrfs_path, match.replace('.json', ''), 'layers', 'contents')
     # Extract information about this container
     #env_vars = state['config']['Env']
     with IPDB() as ipdb:
@@ -336,7 +336,7 @@ def mocker_run(uuid1, *args):
             # add process to cgroup
             cg.add(pid)
             
-            #os.chroot(layer_dir)
+            os.chroot(layer_dir)
             #if working_dir != '':
                 #log.info("Setting working directory to %s" % working_dir)
                 #os.chdir(working_dir)
