@@ -415,6 +415,6 @@ def mocker_help():
 +
 '''
 
-# mocker_pull('busybox')
+mocker_pull('busybox')
 # print(mocker_images())
-mocker_run('img_42166', 'echo "hello from busybox"')
+#mocker_run('img_42166', 'echo "hello from busybox"')
