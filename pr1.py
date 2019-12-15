@@ -153,7 +153,7 @@ def mocker_rm(uuid1):
     rm <container_id> - удаляет ранее
     созданный контейнер
     '''
-    if uuid1[0: 4] == "ps_":
+    if uuid1[0: 3] == "ps_":
         if mocker_check(uuid1) == 1:
             print('No container named ' + str(uuid1))
             return
