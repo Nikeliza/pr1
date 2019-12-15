@@ -274,7 +274,7 @@ def mocker_run(uuid1, *args):
     print(cmd)
     process = subprocess.Popen(cmd, preexec_fn=in_cgroup, shell=True)
     process.wait()
-    print(process.stdout)
+    #print(process.stdout)
     NetNS(netns_name).close()
     netns.remove(netns_name)
     # ipdb.interfaces[veth0_name].remove()
