@@ -249,8 +249,8 @@ def mocker_run(uuid1, *args):
 
     btrfsutil.create_snapshot(btrfs_path + '/' + uuid1, btrfs_path + '/' + uuid_name)
     file = open(btrfs_path + '/' + uuid_name + '/' + uuid_name + '.cmd', 'w')
-    for i in cmd:
-        file.write(str(i))
+    #for i in cmd:
+    file.write(str(cmd))
     file.close()
     cg = Cgroup(uuid_name)
     cg.set_cpu_limit(50)  # TODO : get these as command line options
