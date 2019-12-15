@@ -7,33 +7,26 @@ from pyroute2 import IPDB, NetNS, netns
 btrfs_path = '/var/mocker'
 cgroups1 = 'cpu,cpuacct,memory'
 import btrfsutil
-from cgroups.user import create_user_cgroups
 import subprocess
 import traceback
 import requests
-import platform
 import json
 import tarfile
-import dockerhub
 import uuid
 
 
 def mocker_check(uuid1):
     it = btrfsutil.SubvolumeIterator(btrfs_path, info=True, post_order=True)
     try:
-        # print(len(it))
         for path, info in it:
-            print(info.id, info.parent_id, path)
+            #print(info.id, info.parent_id, path)
             if str(path) == uuid1:
-                print('ccccccccccccccccccc')
                 return 0
-        print('bbbbbbbbbbbbbbbbb')
         return 1
     except Exception as e:
         print(e)
     finally:
         it.close()
-        print('aaaaaaaaaaaaaaaaaaaaa')
         # return 1
 
 
@@ -43,22 +36,17 @@ def mocker_init(directory):
     используя указанную директорию как корневую.
     Возвращает в stdout id созданного образа.
     '''
-    # uuid="img_$(shuf -i 42002-42254 -n 1)"
-    # img ???????????????????????????????++++++++++++++++++++++++++
     uuid1 = 'img_' + str(random.randint(42002, 42254))
     if os.path.exists(directory):
         if mocker_check(uuid1) == 0:
             mocker_run(directory)  # ???????????????? vse argumenti v stolbik
-
         btrfsutil.create_subvolume(btrfs_path + '/' + str(uuid1))
-
-        # btrfs subvolume create "$btrfs_path/$uuid" > /dev/null
         os.system('cp -rf --reflink=auto ' + directory + '/* ' + btrfs_path + '/' + str(uuid))
-        # cp -rf --reflink=auto "$1"/* "$btrfs_path/$uuid" > /dev/null
-
-        # [[ ! -f "$btrfs_path/$uuid"/img.source ]] && echo "$1" > "$btrfs_path/$uuid"/img.source
         if not os.path.exists(btrfs_path + '/' + str(uuid1) + '/img.source'):
-            os.system('echo ' + directory + ' > ' + btrfs_path + '/' + str(uuid) + '/img.source')
+            file = open('img.source', 'w')
+            file.write(directory)
+            file.close()
+            #os.system('echo ' + directory + ' > ' + btrfs_path + '/' + str(uuid) + '/img.source')
         print("created " + str(uuid1))
     else:
         print("Noo directory named " + directory + " exists")
@@ -82,6 +70,7 @@ def get_manifest(image, tag, registry_base, library, headers):
                             headers=headers)
     print(manifest)
     return manifest.json()
+
 
 def mocker_pull(image):
     '''
@@ -184,7 +173,6 @@ def mocker_images():
 		img=$(basename "$img")
 		echo -e "$img\t\t$(cat "$btrfs_path/$img/img.source")"
 	done
-
     images = [['name', 'version', 'size', 'file']]
     for image_file in os.listdir(btrfs_path):
         if image_file.endswith('.json'):
@@ -228,7 +216,7 @@ def mocker_run(uuid1, *args):
 	[[ "$(bocker_check "$uuid")" == 0 ]] && echo "UUID conflict, retrying..." && bocker_run "$@" && return
 	cmd="${@:2}" && ip="$(echo "${uuid: -3}" | sed 's/0//g')" && mac="${uuid: -3:1}:${uuid: -2}"
     '''
-    #uuid = 'ps_' + str(random.randint(42002, 42254))
+    # uuid = 'ps_' + str(random.randint(42002, 42254))
     id = uuid.uuid4()
     print(id)
     uuid_name = 'ps_' + str(id.fields[5])[:4]
@@ -240,13 +228,13 @@ def mocker_run(uuid1, *args):
     if mocker_check(uuid_name) == 0:
         print(uuid_name)
         print('UUID conflict, retrying...')
-        #mocker_run(uuid1, args)
+        # mocker_run(uuid1, args)
         return
-    #print(args)
+    # print(args)
     cmd = args
-    #ip = uuid[-3:].replace('0', '')
-    #mac = uuid[-3] + ':' + uuid[-2:]
-    #print(cmd, ip, mac)
+    # ip = uuid[-3:].replace('0', '')
+    # mac = uuid[-3] + ':' + uuid[-2:]
+    # print(cmd, ip, mac)
     '''
     ip link add dev veth0_"$uuid" type veth peer name veth1_"$uuid"
 	ip link set dev veth0_"$uuid" up
@@ -260,10 +248,10 @@ def mocker_run(uuid1, *args):
 	ip netns exec netns_"$uuid" ip route add default via 10.0.0.1
     '''
     ip_last_octet = 103
-    #state = json.loads(image_details['history'][0]['v1Compatibility'])
+    # state = json.loads(image_details['history'][0]['v1Compatibility'])
     layer_dir = os.path.join(btrfs_path, uuid1.replace('.json', ''), 'contents')
     # Extract information about this container
-    #env_vars = state['config']['Env']
+    # env_vars = state['config']['Env']
     with IPDB() as ipdb:
         veth0_name = 'veth0_' + str(uuid_name)
         veth1_name = 'veth1_' + str(uuid_name)
@@ -315,8 +303,8 @@ def mocker_run(uuid1, *args):
 	ip netns del netns_"$uuid"
     '''
     btrfsutil.create_snapshot(btrfs_path + '/' + uuid1, btrfs_path + '/' + uuid_name)
-    #os.system('echo \'nameserver 8.8.8.8\' > ' + btrfs_path + '/' + uuid_name + '/etc/resolv.conf')
-    #os.system('echo ' + cmd + ' > "' + btrfs_path + '/' + uuid_name + '/' + uuid_name + '.cmd"')
+    # os.system('echo \'nameserver 8.8.8.8\' > ' + btrfs_path + '/' + uuid_name + '/etc/resolv.conf')
+    # os.system('echo ' + cmd + ' > "' + btrfs_path + '/' + uuid_name + '/' + uuid_name + '.cmd"')
 
     cg = Cgroup(uuid_name)
     cg.set_cpu_limit(50)  # TODO : get these as command line options
@@ -326,32 +314,33 @@ def mocker_run(uuid1, *args):
         try:
             pid = os.getpid()
             cg = Cgroup(uuid_name)
-            #for env in env_vars:
-                #log.info('Setting ENV %s' % env)
-                #os.putenv(*env.split('=', 1))
-    
+            # for env in env_vars:
+            # log.info('Setting ENV %s' % env)
+            # os.putenv(*env.split('=', 1))
+
             # Set network namespace
             netns.setns(netns_name)
 
             # add process to cgroup
             cg.add(pid)
-            
+
             os.chroot(layer_dir)
-            #if working_dir != '':
-                #log.info("Setting working directory to %s" % working_dir)
-                #os.chdir(working_dir)
-                
+            # if working_dir != '':
+            # log.info("Setting working directory to %s" % working_dir)
+            # os.chdir(working_dir)
+
         except Exception as e:
             traceback.print_exc()
             # log.error("Failed to preexecute function")
             # log.error(e)
+
     cmd = list(args)
     print(cmd)
     # log.info('Running "%s"' % cmd)
     process = subprocess.Popen(cmd, preexec_fn=in_cgroup, shell=True)
     process.wait()
     print(process.stdout)
-        # log.error(process.stderr)
+    # log.error(process.stderr)
 
     '''except Exception as e:
         traceback.print_exc()
@@ -360,8 +349,8 @@ def mocker_run(uuid1, *args):
     # log.info('Finalizing')
     NetNS(netns_name).close()
     netns.remove(netns_name)
-    #print(ipdb.interfaces)
-    #ipdb.interfaces[veth0_name].remove()
+    # print(ipdb.interfaces)
+    # ipdb.interfaces[veth0_name].remove()
     # log.info('done')
 
 
@@ -426,6 +415,6 @@ def mocker_help():
 +
 '''
 
-#mocker_pull('busybox')
-#print(mocker_images())
+# mocker_pull('busybox')
+# print(mocker_images())
 mocker_run('img_42166', 'echo "hello from busybox"')
