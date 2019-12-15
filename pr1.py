@@ -249,7 +249,7 @@ def mocker_run(uuid1, *args):
     file_log.write('Running ' + cmd[0])
     process = subprocess.Popen(cmd, preexec_fn=in_cgroup, shell=True)
     process.wait()
-    file_log.write(process.stderr)
+    file_log.write(str(process.stderr))
     file_log.write('Final')
     NetNS(netns_name).close()
     netns.remove(netns_name)
