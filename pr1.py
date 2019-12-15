@@ -259,6 +259,7 @@ def mocker_run(uuid1, *args):
     def in_cgroup():
         try:
             pid = os.getpid()
+            print(pid)
             cg = Cgroup(uuid_name)
 
             netns.setns(netns_name)
