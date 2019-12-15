@@ -328,8 +328,8 @@ def mocker_help():
     print('help/tвыводит help по командам')
     print('commit arg1 arg2/tсоздает новый образ, применяя изменения из образа arg1 к образу arg2')
     print('logs arg1/tвыводит логи указанного контейнера')
-    print('exec arg1 arg2 .../tзапускает указанную команду arg2 ... внутри уже запущенного указанного контейнера arg1')
-    print('run arg1 arg2 .../tсоздает контейнер из указанного image arg1 и запускает его с указанной командой arg2 ...')
+    print('exec arg1 arg2 /tзапускает указанную команду arg2 внутри уже запущенного указанного контейнера arg1')
+    print('run arg1 arg2 /tсоздает контейнер из указанного image arg1 и запускает его с указанной командой arg2')
     print('ps/tвыводит список контейнеров')
     print('images/tвыводит список локальный образов')
     print('rm arg1/tудаляет ранее созданный контейнер arg1')
@@ -365,8 +365,8 @@ if __name__ == "__main__":
     elif sys.argv[1] == 'commit':
         mocker_commit(sys.argv[2], sys.argv[3])
     elif sys.argv[1] == 'run':
-        mocker_run(sys.argv[2], sys.argv[3:])
+        mocker_run(sys.argv[2], sys.argv[3])
     elif sys.argv[1] == 'exec':
-        mocker_exec(sys.argv[2], sys.argv[3:])
+        mocker_exec(sys.argv[2], sys.argv[3])
     else:
         print('Unknown command')
