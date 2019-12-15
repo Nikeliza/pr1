@@ -179,10 +179,8 @@ def mocker_run(uuid1, *args):
     с указанной командой
     '''
     id = uuid.uuid4()
-    print(id)
     uuid_name = 'ps_' + str(id.fields[5])[:4]
     
-    print(str(id.fields[5])[:4], uuid_name)
     mac = str(id.fields[5])[:2]
     if mocker_check(uuid1) == 1:
         print('No image named ' + str(uuid1))
@@ -254,6 +252,7 @@ def mocker_run(uuid1, *args):
     NetNS(netns_name).close()
     netns.remove(netns_name)
     file_log.write('done')
+    print('Creating', uuid_name)
 
 
 def mocker_exec(uuid1, *argv):
