@@ -248,7 +248,7 @@ def mocker_run(uuid1, *args):
             'gateway': '10.0.0.1'}).commit()
 
     btrfsutil.create_snapshot(btrfs_path + '/' + uuid1, btrfs_path + '/' + uuid_name)
-    file = open(btrfs_path + '/' + uuid_name + '/' + uuid_name + '.cmd', 'r')
+    file = open(btrfs_path + '/' + uuid_name + '/' + uuid_name + '.cmd', 'w')
     file.write(cmd)
     file.close()
     cg = Cgroup(uuid_name)
