@@ -181,7 +181,7 @@ def mocker_run(uuid1, *args):
     id = uuid.uuid4()
     print(id)
     uuid_name = 'ps_' + str(id.fields[5])[:4]
-    file_log = open(btrfs_path + '/' + uuid_name + '/' + uuid_name + '.log', 'w')
+    
     print(str(id.fields[5])[:4], uuid_name)
     mac = str(id.fields[5])[:2]
     if mocker_check(uuid1) == 1:
@@ -223,6 +223,7 @@ def mocker_run(uuid1, *args):
         ns.routes.add({'dst': 'default', 'gateway': '10.0.0.1'}).commit()
 
     btrfsutil.create_snapshot(btrfs_path + '/' + uuid1, btrfs_path + '/' + uuid_name)
+    file_log = open(btrfs_path + '/' + uuid_name + '/' + uuid_name + '.log', 'w')
     file = open(btrfs_path + '/' + uuid_name + '/' + uuid_name + '.cmd', 'w')
     file.write(str(cmd))
     file.close()
