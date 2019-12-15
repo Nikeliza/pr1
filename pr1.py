@@ -246,7 +246,7 @@ def mocker_run(uuid1, *args):
             file_log.write(e)
 
     cmd = list(args)
-    file_log.write('Running ' + cmd)
+    file_log.write('Running ' + args)
     process = subprocess.Popen(cmd, preexec_fn=in_cgroup, shell=True)
     process.wait()
     file_log.write(process.stderr)
