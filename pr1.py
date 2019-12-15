@@ -142,7 +142,7 @@ def mocker_rmi(uuid1):
             return
         btrfsutil.delete_subvolume(btrfs_path + '/' + str(uuid1))
         cg = Cgroup(uuid1)
-        cg.remove(uuid1)
+        cg.delete()
         print('Removed ' + str(uuid1))
     else:
         print('This is not image')
