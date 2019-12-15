@@ -13,7 +13,7 @@ import tarfile
 import uuid
 
 
-btrfs_path = '/home/vagrant/var/mocker'
+btrfs_path = '/home/vagrant/mocker'
 cgroups1 = 'cpu,cpuacct,memory'
 
 
