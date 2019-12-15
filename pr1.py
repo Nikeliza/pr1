@@ -4,9 +4,6 @@ import random
 from cgroups import Cgroup
 from pyroute2 import IPDB, NetNS, netns
 import sys
-
-btrfs_path = '/var/mocker'
-cgroups1 = 'cpu,cpuacct,memory'
 import btrfsutil
 import subprocess
 import traceback
@@ -14,14 +11,16 @@ import requests
 import json
 import tarfile
 import uuid
-import argparse
+
+
+btrfs_path = '/var/mocker'
+cgroups1 = 'cpu,cpuacct,memory'
 
 
 def mocker_check(uuid1):
     it = btrfsutil.SubvolumeIterator(btrfs_path, info=True, post_order=True)
     try:
         for path, info in it:
-            #print(info.id, info.parent_id, path)
             if str(path) == uuid1:
                 return 0
         return 1
@@ -29,7 +28,6 @@ def mocker_check(uuid1):
         print(e)
     finally:
         it.close()
-        # return 1
 
 
 def mocker_init(directory):
@@ -41,7 +39,9 @@ def mocker_init(directory):
     uuid1 = 'img_' + str(random.randint(42002, 42254))
     if os.path.exists(directory):
         if mocker_check(uuid1) == 0:
-            mocker_run(directory)  # ???????????????? vse argumenti v stolbik
+            print('UUID conflict, retrying...')
+            mocker_init(directory)
+            return
         btrfsutil.create_subvolume(btrfs_path + '/' + str(uuid1))
         os.system('cp -rf --reflink=auto ' + directory + '/* ' + btrfs_path + '/' + str(uuid))
         if not os.path.exists(btrfs_path + '/' + str(uuid1) + '/img.source'):
@@ -51,11 +51,9 @@ def mocker_init(directory):
         print("created " + str(uuid1))
     else:
         print("Noo directory named " + directory + " exists")
-    pass
 
 
 def auth(library, image):
-    # request a v2 token
     token_req = requests.get(
         'https://auth.docker.io/token?service=registry.docker.io&scope=repository:%s/%s:pull'
         % (library, image))
@@ -63,7 +61,6 @@ def auth(library, image):
 
 
 def get_manifest(image, tag, registry_base, library, headers):
-    # get the image manifest
     print("Fetching manifest for %s:%s..." % (image, tag))
 
     manifest = requests.get('%s/%s/%s/manifests/%s' %
@@ -83,34 +80,25 @@ def mocker_pull(image):
     '''
     registry_base = 'https://registry-1.docker.io/v2'
     library = 'library'
-    # login anonymously
-    headers = {'Authorization': 'Bearer %s' % auth(library,
-                                                   image)}
-    # get the manifest
+    headers = {'Authorization': 'Bearer %s' % auth(library, image)}
     manifest = get_manifest(image, 'latest', registry_base, library, headers)
 
-    # save the manifest
     image_name_friendly = manifest['name'].replace('/', '_')
-    with open(os.path.join(btrfs_path,
-                           image_name_friendly + '.json'), 'w') as cache:
+    with open(os.path.join(btrfs_path, image_name_friendly + '.json'), 'w') as cache:
         cache.write(json.dumps(manifest))
-    # save the layers to a new folder
+
     dl_path = os.path.join(btrfs_path, image_name_friendly, 'layers')
     if not os.path.exists(dl_path):
         os.makedirs(dl_path)
 
-    # fetch each unique layer
     layer_sigs = [layer['blobSum'] for layer in manifest['fsLayers']]
     unique_layer_sigs = set(layer_sigs)
 
-    # setup a directory with the image contents
     contents_path = os.path.join(dl_path, 'contents')
     if not os.path.exists(contents_path):
         os.makedirs(contents_path)
 
-    # download all the parts
     for sig in unique_layer_sigs:
-        print('Fetching layer %s..' % sig)
         url = '%s/%s/%s/blobs/%s' % (registry_base, library,
                                      image, sig)
         local_filename = os.path.join(dl_path, sig) + '.tar'
@@ -121,12 +109,7 @@ def mocker_pull(image):
                 if chunk:
                     f.write(chunk)
 
-        # list some of the contents..
         with tarfile.open(local_filename, 'r') as tar:
-            for member in tar.getmembers()[:10]:
-                print('- ' + member.name)
-            print('...')
-
             tar.extractall(str(contents_path))
     mocker_init(dl_path)
 
@@ -187,7 +170,6 @@ def mocker_ps():
             cmd = file.read()
             file.close()
             print(ps_file, cmd)
-    pass
 
 
 def mocker_run(uuid1, *args):
@@ -196,10 +178,10 @@ def mocker_run(uuid1, *args):
     из указанного image_id и запускает его
     с указанной командой
     '''
-
     id = uuid.uuid4()
     print(id)
     uuid_name = 'ps_' + str(id.fields[5])[:4]
+    file_log = open(btrfs_path + '/' + uuid_name + '/' + uuid_name + '.log', 'w')
     print(str(id.fields[5])[:4], uuid_name)
     mac = str(id.fields[5])[:2]
     if mocker_check(uuid1) == 1:
@@ -208,7 +190,6 @@ def mocker_run(uuid1, *args):
     if mocker_check(uuid_name) == 0:
         print(uuid_name)
         print('UUID conflict, retrying...')
-        # mocker_run(uuid1, args)
         return
     cmd = args
     ip_last_octet = 103
@@ -221,21 +202,17 @@ def mocker_run(uuid1, *args):
 
         existing_interfaces = ipdb.interfaces.keys()
 
-        # Create a new virtual interface
         with ipdb.create(kind='veth', ifname=veth0_name, peer=veth1_name) as i1:
             i1.up()
             if bridge_if_name not in existing_interfaces:
                 ipdb.create(kind='bridge', ifname=bridge_if_name).commit()
             i1.set_target('master', bridge_if_name)
 
-        # Create a network namespace
         netns.create(netns_name)
 
-        # move the bridge interface into the new namespace
         with ipdb.interfaces[veth1_name] as veth1:
             veth1.net_ns_fd = netns_name
 
-        # Use this network namespace as the database
         ns = IPDB(nl=NetNS(netns_name))
         with ns.interfaces.lo as lo:
             lo.up()
@@ -243,17 +220,14 @@ def mocker_run(uuid1, *args):
             veth1.address = "02:42:ac:11:00:{0}".format(mac)
             veth1.add_ip('10.0.0.{0}/24'.format(ip_last_octet))
             veth1.up()
-        ns.routes.add({
-            'dst': 'default',
-            'gateway': '10.0.0.1'}).commit()
+        ns.routes.add({'dst': 'default', 'gateway': '10.0.0.1'}).commit()
 
     btrfsutil.create_snapshot(btrfs_path + '/' + uuid1, btrfs_path + '/' + uuid_name)
     file = open(btrfs_path + '/' + uuid_name + '/' + uuid_name + '.cmd', 'w')
-    #for i in cmd:
     file.write(str(cmd))
     file.close()
     cg = Cgroup(uuid_name)
-    cg.set_cpu_limit(50)  # TODO : get these as command line options
+    cg.set_cpu_limit(50)
     cg.set_memory_limit(500)
 
     def in_cgroup():
@@ -263,21 +237,22 @@ def mocker_run(uuid1, *args):
             cg = Cgroup(uuid_name)
 
             netns.setns(netns_name)
-
-            # add process to cgroup
             cg.add(pid)
 
         except Exception as e:
             traceback.print_exc()
+            file_log.write("Failed to preexecute function")
+            file_log.write(e)
 
     cmd = list(args)
-    print(cmd)
+    file_log.write('Running ' + cmd)
     process = subprocess.Popen(cmd, preexec_fn=in_cgroup, shell=True)
     process.wait()
-    #print(process.stdout)
+    file_log.write(process.stderr)
+    file_log.write('Final')
     NetNS(netns_name).close()
     netns.remove(netns_name)
-    # ipdb.interfaces[veth0_name].remove()
+    file_log.write('done')
 
 
 def mocker_exec(uuid1, *argv):
@@ -294,12 +269,12 @@ def mocker_logs(uuid1):
     logs <container_id> - выводит логи
     указанного контейнера
     '''
-
     if mocker_check(uuid1) == 1:
         print('No container named ' + str(uuid1))
         return
-    os.system('cat ' + btrfs_path + '/' + str(uuid1) + '/' + str(uuid1) + '.log')
-    pass
+    file = open(btrfs_path + '/' + str(uuid1) + '/' + str(uuid1) + '.log', 'r')
+    print(file.read())
+    file.close()
 
 
 def mocker_commit(uuid1, uuid2):
