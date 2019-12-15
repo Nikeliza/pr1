@@ -3,6 +3,7 @@ import os
 import random
 from cgroups import Cgroup
 from pyroute2 import IPDB, NetNS, netns
+import sys
 
 btrfs_path = '/var/mocker'
 cgroups1 = 'cpu,cpuacct,memory'
@@ -13,6 +14,7 @@ import requests
 import json
 import tarfile
 import uuid
+import argparse
 
 
 def mocker_check(uuid1):
@@ -46,7 +48,6 @@ def mocker_init(directory):
             file = open(btrfs_path + '/' + str(uuid1) + '/img.source', 'w')
             file.write(directory)
             file.close()
-            #os.system('echo ' + directory + ' > ' + btrfs_path + '/' + str(uuid) + '/img.source')
         print("created " + str(uuid1))
     else:
         print("Noo directory named " + directory + " exists")
@@ -80,7 +81,7 @@ def mocker_pull(image):
     a = dockerhub.DockerHub()
     a.get_repository(image)
     '''
-    registry_base = 'https://registry-1.docker.io/v2'  # 'https://hub.docker.com/v2/'
+    registry_base = 'https://registry-1.docker.io/v2'
     library = 'library'
     # login anonymously
     headers = {'Authorization': 'Bearer %s' % auth(library,
@@ -128,7 +129,6 @@ def mocker_pull(image):
 
             tar.extractall(str(contents_path))
     mocker_init(dl_path)
-    pass
 
 
 def mocker_rmi(uuid1):
@@ -136,70 +136,57 @@ def mocker_rmi(uuid1):
     rmi <image_id> - удаляет
     ранее созданный образ из локального хранилища.
     '''
-    '''
-    	[[ "$(bocker_check "$1")" == 1 ]] && echo "No container named '$1' exists" && exit 1
-	btrfs subvolume delete "$btrfs_path/$1" > /dev/null
-	cgdelete -g "$cgroups:/$1" &> /dev/null || true
-	echo "Removed: $1"
-    '''
-
-    if mocker_check(uuid1) == 1:
-        print('No container named ' + str(uuid1))
-        return
-    btrfsutil.delete_subvolume(btrfs_path + '/' + str(uuid1))
-    cg = Cgroup(uuid1)
-    cg.remove(uuid1)
-    print('Removed ' + str(uuid1))
-    # Cgroup.remove(uuid)
-
-    pass
+    if uuid1[0: 4] == "img_":
+        if mocker_check(uuid1) == 1:
+            print('No image named ' + str(uuid1))
+            return
+        btrfsutil.delete_subvolume(btrfs_path + '/' + str(uuid1))
+        cg = Cgroup(uuid1)
+        cg.remove(uuid1)
+        print('Removed ' + str(uuid1))
+    else:
+        print('This is not image')
 
 
-def mocker_rm():
+def mocker_rm(uuid1):
     '''+
     rm <container_id> - удаляет ранее
     созданный контейнер
     '''
-    pass
+    if uuid1[0: 4] == "ps_":
+        if mocker_check(uuid1) == 1:
+            print('No container named ' + str(uuid1))
+            return
+        btrfsutil.delete_subvolume(btrfs_path + '/' + str(uuid1))
+        cg = Cgroup(uuid1)
+        cg.remove(uuid1)
+        print('Removed ' + str(uuid1))
+    else:
+        print('This is not container')
 
 
 def mocker_images():
     '''+
     images - выводит список локальный образов
     '''
-    '''
-    	echo -e "IMAGE_ID\t\tSOURCE"
-	for img in "$btrfs_path"/img_*; do
-		img=$(basename "$img")
-		echo -e "$img\t\t$(cat "$btrfs_path/$img/img.source")"
-	done
-    images = [['name', 'version', 'size', 'file']]
-    for image_file in os.listdir(btrfs_path):
-        if image_file.endswith('.json'):
-            with open(os.path.join(btrfs_path, image_file), 'r') as json_f:
-                image = json.loads(json_f.read())
-            image_base = os.path.join(btrfs_path, image_file.replace('.json', ''), 'layers')
-            size = sum(os.path.getsize(os.path.join(image_base, f)) for f in
-                       os.listdir(image_base)
-                       if os.path.isfile(os.path.join(image_base, f)))
-            images.append([image['name'], image['tag'], sizeof_fmt(size), image_file])
-return images
-'''
     for image_file in os.listdir(btrfs_path):
         if image_file[0:4] == 'img_':
-            print(image_file)
+            file = open(btrfs_path + '/' + image_file + '/img.source', 'r')
+            directory = file.read()
+            file.close()
+            print(image_file, directory)
 
 
 def mocker_ps():
     '''+
     ps - выводит список контейнеров
     '''
-    '''
-    echo -e "CONTAINER_ID\t\tCOMMAND"
-	for ps in "$btrfs_path"/ps_*; do
-		ps=$(basename "$ps")
-		echo -e "$ps\t\t$(cat "$btrfs_path/$ps/$ps.cmd")"
-    '''
+    for ps_file in os.listdir(btrfs_path):
+        if ps_file[0:3] == 'ps_':
+            file = open(btrfs_path + '/' + ps_file + '/' + ps_file + '.cmd', 'r')
+            cmd = file.read()
+            file.close()
+            print(ps_file, cmd)
     pass
 
 
@@ -210,13 +197,6 @@ def mocker_run(uuid1, *args):
     с указанной командой
     '''
 
-    '''
-    uuid="ps_$(shuf -i 42002-42254 -n 1)"
-	[[ "$(bocker_check "$1")" == 1 ]] && echo "No image named '$1' exists" && exit 1
-	[[ "$(bocker_check "$uuid")" == 0 ]] && echo "UUID conflict, retrying..." && bocker_run "$@" && return
-	cmd="${@:2}" && ip="$(echo "${uuid: -3}" | sed 's/0//g')" && mac="${uuid: -3:1}:${uuid: -2}"
-    '''
-    # uuid = 'ps_' + str(random.randint(42002, 42254))
     id = uuid.uuid4()
     print(id)
     uuid_name = 'ps_' + str(id.fields[5])[:4]
@@ -230,28 +210,9 @@ def mocker_run(uuid1, *args):
         print('UUID conflict, retrying...')
         # mocker_run(uuid1, args)
         return
-    # print(args)
     cmd = args
-    # ip = uuid[-3:].replace('0', '')
-    # mac = uuid[-3] + ':' + uuid[-2:]
-    # print(cmd, ip, mac)
-    '''
-    ip link add dev veth0_"$uuid" type veth peer name veth1_"$uuid"
-	ip link set dev veth0_"$uuid" up
-	ip link set veth0_"$uuid" master bridge0
-	ip netns add netns_"$uuid"
-	ip link set veth1_"$uuid" netns netns_"$uuid"
-	ip netns exec netns_"$uuid" ip link set dev lo up
-	ip netns exec netns_"$uuid" ip link set veth1_"$uuid" address 02:42:ac:11:00"$mac"
-	ip netns exec netns_"$uuid" ip addr add 10.0.0."$ip"/24 dev veth1_"$uuid"
-	ip netns exec netns_"$uuid" ip link set dev veth1_"$uuid" up
-	ip netns exec netns_"$uuid" ip route add default via 10.0.0.1
-    '''
     ip_last_octet = 103
-    # state = json.loads(image_details['history'][0]['v1Compatibility'])
-    layer_dir = os.path.join(btrfs_path, uuid1.replace('.json', ''), 'contents')
-    # Extract information about this container
-    # env_vars = state['config']['Env']
+
     with IPDB() as ipdb:
         veth0_name = 'veth0_' + str(uuid_name)
         veth1_name = 'veth1_' + str(uuid_name)
@@ -286,26 +247,10 @@ def mocker_run(uuid1, *args):
             'dst': 'default',
             'gateway': '10.0.0.1'}).commit()
 
-    '''
-    btrfs subvolume snapshot "$btrfs_path/$1" "$btrfs_path/$uuid" > /dev/null
-	echo 'nameserver 8.8.8.8' > "$btrfs_path/$uuid"/etc/resolv.conf
-	echo "$cmd" > "$btrfs_path/$uuid/$uuid.cmd"
-	cgcreate -g "$cgroups:/$uuid"
-	: "${BOCKER_CPU_SHARE:=512}" && cgset -r cpu.shares="$BOCKER_CPU_SHARE" "$uuid"
-	: "${BOCKER_MEM_LIMIT:=512}" && cgset -r memory.limit_in_bytes="$((BOCKER_MEM_LIMIT * 1000000))" "$uuid"
-	cgexec -g "$cgroups:$uuid" \
-		ip netns exec netns_"$uuid" \
-		unshare -fmuip --mount-proc \
-		chroot "$btrfs_path/$uuid" \
-		/bin/sh -c "/bin/mount -t proc proc /proc && $cmd" \
-		2>&1 | tee "$btrfs_path/$uuid/$uuid.log" || true
-	ip link del dev veth0_"$uuid"
-	ip netns del netns_"$uuid"
-    '''
     btrfsutil.create_snapshot(btrfs_path + '/' + uuid1, btrfs_path + '/' + uuid_name)
-    # os.system('echo \'nameserver 8.8.8.8\' > ' + btrfs_path + '/' + uuid_name + '/etc/resolv.conf')
-    # os.system('echo ' + cmd + ' > "' + btrfs_path + '/' + uuid_name + '/' + uuid_name + '.cmd"')
-
+    file = open(btrfs_path + '/' + uuid_name + '/' + uuid_name + '.cmd', 'r')
+    file.write(cmd)
+    file.close()
     cg = Cgroup(uuid_name)
     cg.set_cpu_limit(50)  # TODO : get these as command line options
     cg.set_memory_limit(500)
@@ -314,47 +259,26 @@ def mocker_run(uuid1, *args):
         try:
             pid = os.getpid()
             cg = Cgroup(uuid_name)
-            # for env in env_vars:
-            # log.info('Setting ENV %s' % env)
-            # os.putenv(*env.split('=', 1))
 
-            # Set network namespace
             netns.setns(netns_name)
 
             # add process to cgroup
             cg.add(pid)
 
-            os.chroot(layer_dir)
-            # if working_dir != '':
-            # log.info("Setting working directory to %s" % working_dir)
-            # os.chdir(working_dir)
-
         except Exception as e:
             traceback.print_exc()
-            # log.error("Failed to preexecute function")
-            # log.error(e)
 
     cmd = list(args)
     print(cmd)
-    # log.info('Running "%s"' % cmd)
     process = subprocess.Popen(cmd, preexec_fn=in_cgroup, shell=True)
     process.wait()
     print(process.stdout)
-    # log.error(process.stderr)
-
-    '''except Exception as e:
-        traceback.print_exc()
-        log.error(e)
-    finally:'''
-    # log.info('Finalizing')
     NetNS(netns_name).close()
     netns.remove(netns_name)
-    # print(ipdb.interfaces)
     # ipdb.interfaces[veth0_name].remove()
-    # log.info('done')
 
 
-def mocker_exec():
+def mocker_exec(uuid1, *argv):
     '''
     exec <container_id> <command> - запускает
     указанную команду внутри уже запущенного
@@ -367,10 +291,6 @@ def mocker_logs(uuid1):
     '''+
     logs <container_id> - выводит логи
     указанного контейнера
-    '''
-    '''
-    [[ "$(bocker_check "$1")" == 1 ]] && echo "No container named '$1' exists" && exit 1
-	cat "$btrfs_path/$1/$1.log"
     '''
 
     if mocker_check(uuid1) == 1:
@@ -386,12 +306,6 @@ def mocker_commit(uuid1, uuid2):
     образ, применяя изменения из образа
     container_id к образу image_id
     '''
-    '''
-    [[ "$(bocker_check "$1")" == 1 ]] && echo "No container named '$1' exists" && exit 1
-	[[ "$(bocker_check "$2")" == 1 ]] && echo "No image named '$2' exists" && exit 1
-	bocker_rm "$2" && btrfs subvolume snapshot "$btrfs_path/$1" "$btrfs_path/$2" > /dev/null
-	echo "Created: $2"
-    '''
     if mocker_check(uuid1) == 1:
         print('No container named ' + str(uuid1))
         return
@@ -401,20 +315,57 @@ def mocker_commit(uuid1, uuid2):
     mocker_rmi(uuid2)
     btrfsutil.create_snapshot(btrfs_path + '/' + str(uuid1), btrfs_path + '/' + str(uuid2))
     print('Created ' + str(uuid2))
-    pass
 
 
 def mocker_help():
     '''+
     help - выводит help по командам
     '''
+    print("формат комманды")
+    print("command [argumnts]")
+    print("виды команд")
+    print('help/tвыводит help по командам')
+    print('commit arg1 arg2/tсоздает новый образ, применяя изменения из образа arg1 к образу arg2')
+    print('logs arg1/tвыводит логи указанного контейнера')
+    print('exec arg1 arg2 .../tзапускает указанную команду arg2 ... внутри уже запущенного указанного контейнера arg1')
+    print('run arg1 arg2 .../tсоздает контейнер из указанного image arg1 и запускает его с указанной командой arg2 ...')
+    print('ps/tвыводит список контейнеров')
+    print('images/tвыводит список локальный образов')
+    print('rm arg1/tудаляет ранее созданный контейнер arg1')
+    print('rmi arg1/tудаляет ранее созданный образ arg1 из локального хранилища.')
+    print('pull arg1/tскачать последний (latest) тег указанного образа arg1 с Docker Hub.')
+    print('init arg1/tсоздать образ контейнера используя указанную директорию arg1 как корневую.')
     pass
 
 
-'''
-+
-'''
-
-mocker_pull('busybox')
-# print(mocker_images())
-#mocker_run('img_42166', 'echo "hello from busybox"')
+if __name__ == "__main__":
+    if len(sys.argv) < 1:
+        print('Do not enter command')
+    elif sys.argv[1] == 'help':
+        mocker_help()
+    elif sys.argv[1] == 'ps':
+        mocker_ps()
+    elif sys.argv[1] == 'images':
+        mocker_images()
+    elif len(sys.argv) < 3:
+        print('Do not enter argument')
+    elif sys.argv[1] == 'init':
+        mocker_init(sys.argv[2])
+    elif sys.argv[1] == 'pull':
+        mocker_pull(sys.argv[2])
+    elif sys.argv[1] == 'rm':
+        mocker_rm(sys.argv[2])
+    elif sys.argv[1] == 'rmi':
+        mocker_rmi(sys.argv[2])
+    elif sys.argv[1] == 'logs':
+        mocker_logs(sys.argv[2])
+    elif len(sys.argv) < 4:
+        print('Do not enter argument')
+    elif sys.argv[1] == 'commit':
+        mocker_commit(sys.argv[2], sys.argv[3])
+    elif sys.argv[1] == 'run':
+        mocker_run(sys.argv[2], sys.argv[3:])
+    elif sys.argv[1] == 'exec':
+        mocker_exec(sys.argv[2], sys.argv[3:])
+    else:
+        print('Unknown command')
