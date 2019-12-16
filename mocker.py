@@ -264,7 +264,7 @@ def mocker_exec(uuid1, *argv):
     указанного контейнера
     '''
     netns_name = 'netns_' + str(uuid1)
-    cmd = args
+    cmd = argv
     file_log = open(btrfs_path + '/' + uuid1 + '/' + uuid1 + '.log', 'a')
     file = open(btrfs_path + '/' + uuid1 + '/' + uuid1 + '.cmd', 'a')
     file.write(str(cmd))
@@ -282,7 +282,7 @@ def mocker_exec(uuid1, *argv):
             file_log.write("Failed to preexecute function")
             file_log.write(e)
 
-    cmd = list(args)
+    cmd = list(argv)
     file_log.write('Running ' + cmd[0] + '\n')
     process = subprocess.Popen(cmd, preexec_fn=in_cgroup, shell=True)
     process.wait()
