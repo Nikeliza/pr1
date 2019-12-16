@@ -143,7 +143,7 @@ def mocker_rm(uuid1):
         btrfsutil.delete_subvolume(btrfs_path + '/' + str(uuid1))
         cg = Cgroup(uuid1)
         cg.delete()
-        netns_name = 'netns_' + str(uuid_name)
+        netns_name = 'netns_' + str(uuid1)
         netns.remove(netns_name)
         print('Removed ' + str(uuid1))
     else:
