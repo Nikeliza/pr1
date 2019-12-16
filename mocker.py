@@ -263,16 +263,16 @@ def mocker_exec(uuid1, *argv):
     указанную команду внутри уже запущенного
     указанного контейнера
     '''
-    netns_name = 'netns_' + str(uuid_name)
+    netns_name = 'netns_' + str(uuid1)
     cmd = args
-    file_log = open(btrfs_path + '/' + uuid_name + '/' + uuid_name + '.log', 'a')
-    file = open(btrfs_path + '/' + uuid_name + '/' + uuid_name + '.cmd', 'a')
+    file_log = open(btrfs_path + '/' + uuid1 + '/' + uuid1 + '.log', 'a')
+    file = open(btrfs_path + '/' + uuid1 + '/' + uuid1 + '.cmd', 'a')
     file.write(str(cmd))
     file.close()
     def in_cgroup():
         try:
             pid = os.getpid()
-            cg = Cgroup(uuid_name)
+            cg = Cgroup(uuid1)
 
             netns.setns(netns_name)
             cg.add(pid)
@@ -292,7 +292,7 @@ def mocker_exec(uuid1, *argv):
     NetNS(netns_name).close()
     #netns.remove(netns_name)
     file_log.write('done\n')
-    print('Creating', uuid_name)
+    print('Creating', uuid1)
 
     
 
