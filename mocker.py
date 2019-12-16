@@ -143,6 +143,8 @@ def mocker_rm(uuid1):
         btrfsutil.delete_subvolume(btrfs_path + '/' + str(uuid1))
         cg = Cgroup(uuid1)
         cg.delete()
+        netns_name = 'netns_' + str(uuid_name)
+        netns.remove(netns_name)
         print('Removed ' + str(uuid1))
     else:
         print('This is not container')
@@ -250,7 +252,7 @@ def mocker_run(uuid1, *args):
     file_log.write(str(process.stderr) + '\n')
     file_log.write('Final\n')
     NetNS(netns_name).close()
-    netns.remove(netns_name)
+    #netns.remove(netns_name)
     file_log.write('done\n')
     print('Creating', uuid_name)
 
@@ -261,7 +263,38 @@ def mocker_exec(uuid1, *argv):
     указанную команду внутри уже запущенного
     указанного контейнера
     '''
-    pass
+    netns_name = 'netns_' + str(uuid_name)
+    cmd = args
+    file_log = open(btrfs_path + '/' + uuid_name + '/' + uuid_name + '.log', 'a')
+    file = open(btrfs_path + '/' + uuid_name + '/' + uuid_name + '.cmd', 'a')
+    file.write(str(cmd))
+    file.close()
+    def in_cgroup():
+        try:
+            pid = os.getpid()
+            cg = Cgroup(uuid_name)
+
+            netns.setns(netns_name)
+            cg.add(pid)
+
+        except Exception as e:
+            traceback.print_exc()
+            file_log.write("Failed to preexecute function")
+            file_log.write(e)
+
+    cmd = list(args)
+    file_log.write('Running ' + cmd[0] + '\n')
+    process = subprocess.Popen(cmd, preexec_fn=in_cgroup, shell=True)
+    process.wait()
+    file_log.write('Error ')
+    file_log.write(str(process.stderr) + '\n')
+    file_log.write('Final\n')
+    NetNS(netns_name).close()
+    #netns.remove(netns_name)
+    file_log.write('done\n')
+    print('Creating', uuid_name)
+
+    
 
 
 def mocker_logs(uuid1):
